@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab 6: AI Flow Analyst - Interactive Visual Guide</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --purple: #a855f7;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --code-bg: #050811;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 0.4rem;
+    }
+
+    /* Mental Model Banner */
+    .concept-banner {
+      background: linear-gradient(180deg, #131c31 0%, #0d1527 100%);
+      border: 1px solid #24324f;
+      border-radius: 14px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .concept-box {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 1.2rem;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+    }
+    .concept-box.old { border-left: 4px solid var(--amber); }
+    .concept-box.new { border-left: 4px solid var(--green); }
+    .concept-box h3 { font-size: 1rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+    .concept-box p { font-size: 0.88rem; color: var(--text-muted); }
+    .vs-divider {
+      font-weight: 800;
+      color: #475569;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+
+    /* Pipeline Container */
+    .pipeline-wrapper {
+      margin-bottom: 2.5rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.2rem;
+      position: relative;
+    }
+
+    @media (max-width: 1080px) {
+      .pipeline-grid { grid-template-columns: 1fr; }
+      .concept-banner { grid-template-columns: 1fr; text-align: center; }
+    }
+
+    .stage-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.3rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: all 0.25s ease;
+    }
+    .stage-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
+    }
+
+    .stage-num {
+      position: absolute;
+      top: -12px;
+      left: 16px;
+      background: #1e293b;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    .stage-header {
+      margin-top: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .stage-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stage-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .stage-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .visual-block {
+      background: var(--code-bg);
+      border: 1px solid #172033;
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-size: 0.82rem;
+    }
+
+    .item-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.03);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      margin-bottom: 0.35rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+    }
+    .item-pill:last-child { margin-bottom: 0; }
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge.red { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid var(--red); }
+    .badge.amber { background: rgba(245, 158, 11, 0.2); color: var(--amber); border: 1px solid var(--amber); }
+    .badge.green { background: rgba(34, 197, 94, 0.2); color: var(--green); border: 1px solid var(--green); }
+    .badge.blue { background: rgba(56, 189, 248, 0.2); color: var(--primary); border: 1px solid var(--primary); }
+
+    .stage-footer {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #1a2438;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    /* Live Interactive Playground */
+    .playground {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .sim-tabs {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .sim-tab-btn {
+      background: #172136;
+      border: 1px solid #24324f;
+      color: #cbd5e1;
+      padding: 0.6rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .sim-tab-btn:hover {
+      background: #202d49;
+      color: #fff;
+    }
+    .sim-tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #090d16;
+      font-weight: 700;
+    }
+
+    .sim-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+    @media (max-width: 900px) {
+      .sim-content { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--code-bg);
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 1.2rem;
+    }
+    .panel h4 {
+      font-size: 0.95rem;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    pre {
+      font-family: ui-monospace, monospace;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Cheat Sheet Checklist */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem;
+    }
+    .check-card {
+      background: #101626;
+      border: 1px solid #1e2a44;
+      border-radius: 12px;
+      padding: 1.2rem;
+    }
+    .check-card h4 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+      color: #fff;
+    }
+    .cmd-box {
+      background: #060913;
+      border: 1px solid #1a253a;
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #38bdf8;
+      margin: 0.5rem 0;
+      user-select: all;
+    }
+    .screenshot-tag {
+      font-size: 0.75rem;
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.4rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Lab 6: The AI Flow Analyst</h1>
+      <p>Turning Raw OpenFlow Telemetry into Autonomous AI Diagnoses</p>
+    </header>
+
+    <!-- Mental Model Explanation -->
+    <div class="concept-banner">
+      <div class="concept-box old">
+        <h3><span>🛠️</span> Labs 1–5 (Old Way)</h3>
+        <p><strong>You write every rule by hand:</strong> <em>"If packets on port > 100, execute iptables drop"</em>. Rigid, fragile, misses zero-day anomalies, breaks on unseen traffic patterns.</p>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="concept-box new">
+        <h3><span>🧠</span> Lab 6 (AI Way)</h3>
+        <p><strong>The LLM reasons about the network:</strong> You dump live flow tables & port counters, hand it to the AI as a network brief, and it spots floods and rogue drops just like a human engineer.</p>
+      </div>
+    </div>
+
+    <!-- The 4-Stage Architecture Pipeline -->
+    <div class="pipeline-wrapper">
+      <div class="section-title">
+        <span>⚡</span> The 4-Stage System Architecture
+      </div>
+
+      <div class="pipeline-grid">
+        <!-- Stage 1 -->
+        <div class="stage-card">
+          <span class="stage-num">STAGE 1</span>
+          <div class="stage-header">
+            <div class="stage-title">Objective 1: The Sensor</div>
+            <div class="stage-sub">Mininet + OVS + Ryu</div>
+          </div>
+          <div class="stage-body">
+            <p style="font-size: 0.83rem; color: #94a3b8;">Collects raw network ground truth into a single Python dictionary:</p>
+            <div class="visual-block">
+              <div class="item-pill">
+                <span>Ryu REST API (:8080)</span>
+                <span class="badge blue">Flows</span>
+              </div>
+              <div class="item-pill">
+                <span>ovs-ofctl dump-ports</span>
+                <span class="badge blue">Rx/Tx Bytes</span>
+              </div>
+              <div class="item-pill">
+                <span>ovs-vsctl show</span>
+                <span class="badge blue">Status</span>
+              </div>
+            </div>
+            <p style="font-size: 0.83rem; color: #94a3b8;">Two injected traps for the AI to find:</p>
+            <div class="visual-block">
+              <div class="item-pill">
+                <span>h1 ➔ h4 UDP Flood</span>
+                <span class="badge red">iperf 50M</span>
+              </div>
+              <div class="item-pill">
+                <span>s1 Rogue DROP rule</span>
+                <span class="badge red">Drop h2</span>
+              </div>
+            </div>
+          </div>
+          <div class="stage-footer">
+            Output: <code>collect_complete_network_state()</code>
+          </div>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="stage-card">
+          <span class="stage-num">STAGE 2</span>
+          <div class="stage-header">
+            <div class="stage-title">Objective 2: Free-Text AI</div>
+            <div class="stage-sub">format_for_llm + Prompt</div>
+          </div>
+          <div class="stage-body">
+            <p style="font-size: 0.83rem; color: #94a3b8;">Raw JSON is messy for LLMs. This cleans it into an executive network brief:</p>
+            <div class="visual-block">
+              <div style="color: #38bdf8; font-size: 0.75rem; margin-bottom: 0.3rem;">// Prompt Context</div>
+              <div style="font-size: 0.78rem; color: #cbd5e1;">"You are a Senior Network Engineer. Analyze this flow table & port stats. Flag anomalies."</div>
+            </div>
+            <p style="font-size: 0.83rem; color: #94a3b8;">LLM reasoning output:</p>
+            <div class="visual-block">
+              <span class="badge green" style="margin-bottom: 0.3rem; display:inline-block;">Plain English</span>
+              <p style="font-size: 0.78rem; color: #e2e8f0;">"Anomaly 1: Port 4 has 45,000x higher byte count due to UDP flood. Anomaly 2: Rule on s1 dropping MAC ...02 traffic."</p>
+            </div>
+          </div>
+          <div class="stage-footer">
+            Output: <code>analyze_network()</code> (Free Text)
+          </div>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="stage-card">
+          <span class="stage-num">STAGE 3</span>
+          <div class="stage-header">
+            <div class="stage-title">Objective 3: Machine JSON</div>
+            <div class="stage-sub">Strict Schema + Retries</div>
+          </div>
+          <div class="stage-body">
+            <p style="font-size: 0.83rem; color: #94a3b8;">Scripts can't parse free text. We lock the LLM to pure JSON:</p>
+            <div class="visual-block">
+              <pre style="font-size: 0.72rem; color: #a5f3fc;">{
+  "network_health": "warning",
+  "anomalies_detected": [{
+    "type": "Traffic Flood",
+    "affected_device": "s1-eth4",
+    "severity": "high"
+  }],
+  "summary": "..."
+}</pre>
+            </div>
+            <p style="font-size: 0.83rem; color: #94a3b8;">Defensive Reliability:</p>
+            <div class="visual-block">
+              <div class="item-pill">
+                <span>Parse JSON Failure</span>
+                <span class="badge amber">Auto-Retry 1x</span>
+              </div>
+            </div>
+          </div>
+          <div class="stage-footer">
+            Tested on 3 scenarios: Normal, Flood, Drop.
+          </div>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="stage-card">
+          <span class="stage-num">STAGE 4</span>
+          <div class="stage-header">
+            <div class="stage-title">Objective 4: 24/7 Loop</div>
+            <div class="stage-sub">Continuous Sentinel</div>
+          </div>
+          <div class="stage-body">
+            <p style="font-size: 0.83rem; color: #94a3b8;">Autonomous loop polling network every 30 seconds:</p>
+            <div class="visual-block">
+              <div class="item-pill">
+                <span>Iteration Interval</span>
+                <span class="badge blue">30 seconds</span>
+              </div>
+              <div class="item-pill">
+                <span>State Comparison</span>
+                <span class="badge green">T vs T-1</span>
+              </div>
+            </div>
+            <p style="font-size: 0.83rem; color: #94a3b8;">Alert Trigger:</p>
+            <div class="visual-block">
+              <span class="badge red" style="margin-bottom: 0.2rem; display:inline-block;">🚨 ALERT</span>
+              <p style="font-size: 0.76rem; color: #fca5a5;">Status changed: normal ➔ warning. Anomaly detected on s1.</p>
+            </div>
+          </div>
+          <div class="stage-footer">
+            Output: Timestamped Terminal Monitor
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Interactive Scenario Explorer -->
+    <div class="playground">
+      <div class="section-title">
+        <span>🎮</span> Interactive Scenario Simulator: See What the AI Sees
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+        Click below to simulate the 3 lab scenarios and see how the telemetry changes and how the AI responds:
+      </p>
+
+      <div class="sim-tabs">
+        <button class="sim-tab-btn active" onclick="setScenario('normal')">1. Normal Network (Baseline)</button>
+        <button class="sim-tab-btn" onclick="setScenario('flood')">2. High-Volume Flood (iperf h1➔h4)</button>
+        <button class="sim-tab-btn" onclick="setScenario('drop')">3. Rogue Flow Rule (Drop h2)</button>
+        <button class="sim-tab-btn" onclick="setScenario('both')">4. Both Anomalies Active (Obj 2 Target)</button>
+      </div>
+
+      <div class="sim-content">
+        <div class="panel">
+          <h4>
+            <span>📊 What the Python Collector Sees</span>
+            <span id="telemetry-badge" class="badge green">Normal Telemetry</span>
+          </h4>
+          <pre id="telemetry-display">// Clean pingall baseline
+Switch s1: 45 active flows, port rx/tx balanced (~4.7 KB each)
+Switch s2: 45 active flows, port rx/tx balanced (~4.7 KB each)
+No abnormal packet drops. All controllers reporting is_connected: true.</pre>
+        </div>
+
+        <div class="panel">
+          <h4>
+            <span>🤖 What the AI Analyst Reports</span>
+            <span id="ai-health-badge" class="badge green">HEALTH: NORMAL</span>
+          </h4>
+          <pre id="ai-display">{
+  "network_health": "normal",
+  "anomalies_detected": [],
+  "summary": "Network telemetry exhibits standard baseline behavior. All port byte counters are balanced following pingall discovery, and no anomalous drop rules or packet floods were observed."
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference & Checklist -->
+    <div class="section-title">
+      <span>📸</span> Lab 6 Execution & Screenshot Checklist
+    </div>
+    <div class="checklist-grid">
+      <div class="check-card">
+        <h4>Obj 1: REST Flow Data</h4>
+        <div class="cmd-box">python3 flow_collector.py step2</div>
+        <div class="screenshot-tag">📸 Screenshot: Flow dictionary output from Ryu</div>
+      </div>
+      <div class="check-card">
+        <h4>Obj 1: Full OVS State</h4>
+        <div class="cmd-box">python3 flow_collector.py all</div>
+        <div class="screenshot-tag">📸 Screenshot: Consolidated state dictionary with port stats</div>
+      </div>
+      <div class="check-card">
+        <h4>Obj 1: Anomalies Active</h4>
+        <div class="cmd-box">python3 anomalies.py status</div>
+        <div class="screenshot-tag">📸 Screenshot: iperf process + ovs-ofctl drop rule active</div>
+      </div>
+      <div class="check-card">
+        <h4>Obj 2: Free-Text AI Analyst</h4>
+        <div class="cmd-box">python3 ai_analyst.py text</div>
+        <div class="screenshot-tag">📸 Screenshot: AI plain-English diagnosis catching anomalies</div>
+      </div>
+      <div class="check-card">
+        <h4>Obj 3: Structured JSON</h4>
+        <div class="cmd-box">python3 ai_analyst.py json</div>
+        <div class="screenshot-tag">📸 Screenshot: 3 runs (Normal, Flood, Drop) with JSON output</div>
+      </div>
+      <div class="check-card">
+        <h4>Obj 4: Continuous Loop</h4>
+        <div class="cmd-box">python3 ai_analyst.py monitor</div>
+        <div class="screenshot-tag">📸 Screenshot: Timestamped alert on health status transition</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const scenarios = {
+      normal: {
+        telemetryBadge: "Normal Telemetry",
+        telemetryClass: "green",
+        telemetryText: `// Switch s1 Ports:
+port 1 (h1): rx=70 pkts (4,732 B), tx=70 pkts (4,732 B), drop=0
+port 2 (h2): rx=28 pkts (1,960 B), tx=49 pkts (2,842 B), drop=0
+port 3 (h3): rx=28 pkts (1,960 B), tx=49 pkts (2,842 B), drop=0
+port 4 (h4): rx=28 pkts (1,960 B), tx=49 pkts (2,842 B), drop=0
+
+// Active Flow Rules on s1:
+priority=1, in_port=1, actions=output:3
+priority=1, in_port=2, actions=output:1
+priority=0, actions=CONTROLLER`,
+        aiBadge: "HEALTH: NORMAL",
+        aiClass: "green",
+        aiText: `{
+  "network_health": "normal",
+  "anomalies_detected": [],
+  "summary": "Network operates normally. All 8 hosts have standard baseline traffic with no packet loss or disproportionate port throughput."
+}`
+      },
+      flood: {
+        telemetryBadge: "HIGH TRAFFIC SPIKE",
+        telemetryClass: "red",
+        telemetryText: `// Switch s1 Ports:
+port 1 (h1): rx=84,210 pkts (124,630,800 B) [HIGH VOLUME] ⚠️
+port 4 (h4): tx=84,210 pkts (124,630,800 B) [HIGH VOLUME] ⚠️
+port 2 (h2): rx=28 pkts (1,960 B), tx=49 pkts (2,842 B)
+port 3 (h3): rx=28 pkts (1,960 B), tx=49 pkts (2,842 B)
+
+// Active Flow Rules on s1:
+priority=1, in_port=1, actions=output:4 (byte_count=124630800)
+priority=0, actions=CONTROLLER`,
+        aiBadge: "HEALTH: WARNING",
+        aiClass: "amber",
+        aiText: `{
+  "network_health": "warning",
+  "anomalies_detected": [
+    {
+      "type": "Traffic Flood / DoS",
+      "affected_device": "s1 (port 1 -> port 4)",
+      "description": "Massive packet volume detected from host h1 to h4 (>120 MB in 30s) exceeding baseline by 25,000x.",
+      "severity": "high"
+    }
+  ],
+  "summary": "High-volume UDP traffic spike detected between h1 and h4. Possible flood or denial-of-service attempt."
+}`
+      },
+      drop: {
+        telemetryBadge: "UNUSUAL DROP RULE",
+        telemetryClass: "red",
+        telemetryText: `// Switch s1 Ports:
+port 2 (h2): rx=28 pkts (1,960 B), tx=0 pkts (0 B) [UNREACHABLE]
+
+// Active Flow Rules on s1:
+⚠️ priority=50000, dl_src=00:00:00:00:00:02, actions=drop
+priority=1, in_port=1, actions=output:3
+priority=0, actions=CONTROLLER`,
+        aiBadge: "HEALTH: WARNING",
+        aiClass: "amber",
+        aiText: `{
+  "network_health": "warning",
+  "anomalies_detected": [
+    {
+      "type": "Rogue Flow Rule / Traffic Blackhole",
+      "affected_device": "s1",
+      "description": "Unusual high-priority flow rule (priority 50000) configured to unconditionally DROP all frames from MAC 00:00:00:00:00:02 (h2).",
+      "severity": "high"
+    }
+  ],
+  "summary": "Suspicious flow entry detected overriding standard L2 forwarding and blackholing host h2."
+}`
+      },
+      both: {
+        telemetryBadge: "CRITICAL: MULTIPLE ANOMALIES",
+        telemetryClass: "red",
+        telemetryText: `// Switch s1 Ports:
+port 1 (h1): rx=84,210 pkts (124,630,800 B) [TRAFFIC FLOOD] ⚠️
+port 4 (h4): tx=84,210 pkts (124,630,800 B) [TRAFFIC FLOOD] ⚠️
+port 2 (h2): drop=500+ pkts [FLOW BLACKHOLE] ⚠️
+
+// Active Flow Rules on s1:
+⚠️ priority=50000, dl_src=00:00:00:00:00:02, actions=drop
+priority=1, in_port=1, actions=output:4 (byte_count=124630800)
+priority=0, actions=CONTROLLER`,
+        aiBadge: "HEALTH: CRITICAL",
+        aiClass: "red",
+        aiText: `{
+  "network_health": "critical",
+  "anomalies_detected": [
+    {
+      "type": "Traffic Flood",
+      "affected_device": "s1 (h1 -> h4)",
+      "description": "Port 1 and Port 4 exhibit abnormal throughput (>120 MB) indicative of an active UDP flood.",
+      "severity": "high"
+    },
+    {
+      "type": "Rogue Access Control / Drop Entry",
+      "affected_device": "s1",
+      "description": "Static drop rule with priority 50000 isolating host h2.",
+      "severity": "high"
+    }
+  ],
+  "summary": "Critical network state: Active traffic flood ongoing between h1 and h4 alongside an unauthorized packet drop rule isolating h2."
+}`
+      }
+    };
+
+    function setScenario(key) {
+      document.querySelectorAll('.sim-tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const data = scenarios[key];
+      const tBadge = document.getElementById('telemetry-badge');
+      const aBadge = document.getElementById('ai-health-badge');
+
+      tBadge.textContent = data.telemetryBadge;
+      tBadge.className = 'badge ' + data.telemetryClass;
+
+      aBadge.textContent = data.aiBadge;
+      aBadge.className = 'badge ' + data.aiClass;
+
+      document.getElementById('telemetry-display').textContent = data.telemetryText;
+      document.getElementById('ai-display').textContent = data.aiText;
+    }
+  </script>
+</body>
+</html>

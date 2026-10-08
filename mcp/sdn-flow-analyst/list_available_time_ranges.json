@@ -1,0 +1,10 @@
+{
+  "name": "list_available_time_ranges",
+  "description": "Lists the earliest and latest available telemetry snapshot timestamps stored in the database, along with the total count of recorded snapshots and TTL retention policy. Call this first to determine what historical time periods exist to query.",
+  "parameters": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {},
+    "required": [],
+    "type": "object"
+  }
+}

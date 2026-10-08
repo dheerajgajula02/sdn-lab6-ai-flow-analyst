@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "sdn-flow-analyst": {
+      "command": "python3",
+      "args": [
+        "mcp_server.py"
+      ],
+      "env": {
+        "MONGO_URI": "mongodb://localhost:27017",
+        "MONGO_DB": "sdn_lab6",
+        "MONGO_COLL": "telemetry"
+      }
+    }
+  }
+}

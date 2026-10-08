@@ -1,0 +1,10 @@
+{
+  "name": "get_latest_telemetry",
+  "description": "Retrieves the most recent SDN telemetry snapshot from the network. Includes active flow counts, per-port Rx/Tx byte and packet counters, and switch connection status.",
+  "parameters": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {},
+    "required": [],
+    "type": "object"
+  }
+}

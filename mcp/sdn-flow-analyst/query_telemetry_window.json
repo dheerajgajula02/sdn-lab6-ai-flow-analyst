@@ -1,0 +1,27 @@
+{
+  "name": "query_telemetry_window",
+  "description": "Queries historical telemetry snapshots within a custom time window. The agent can choose its own window based on user queries (e.g. 'what happened at 3 am?'). Returns summaries of flows, active counts, and port metrics.",
+  "parameters": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "start_time": {
+        "description": "Beginning of the window (e.g. '2026-10-07T03:00:00Z', '2026-10-07 03:00', or '03:00' / '3am').",
+        "type": "string"
+      },
+      "end_time": {
+        "description": "End of the window (defaults to start_time + 1 hour or current time).",
+        "type": "string"
+      },
+      "minutes_ago": {
+        "description": "Optional relative lookback in minutes from the present time (e.g. 15 for the last 15 minutes).",
+        "type": "integer"
+      },
+      "limit": {
+        "description": "Maximum number of snapshots to return (default: 10).",
+        "type": "integer"
+      }
+    },
+    "required": [],
+    "type": "object"
+  }
+}

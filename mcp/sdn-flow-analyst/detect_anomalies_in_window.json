@@ -1,0 +1,23 @@
+{
+  "name": "detect_anomalies_in_window",
+  "description": "Automatically analyzes telemetry snapshots across a time window and identifies anomalies: (1) High-volume traffic floods (iperf / DoS surges in byte counters), (2) Rogue / unauthorized DROP flow rules blackholing hosts, and (3) Switch disconnections.",
+  "parameters": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "start_time": {
+        "description": "Beginning of the window (e.g. '03:00' or ISO timestamp '2026-10-07T03:00:00Z').",
+        "type": "string"
+      },
+      "end_time": {
+        "description": "End of the window (defaults to start_time + 1 hour).",
+        "type": "string"
+      },
+      "minutes_ago": {
+        "description": "Relative lookback in minutes from the present time (default: 30).",
+        "type": "integer"
+      }
+    },
+    "required": [],
+    "type": "object"
+  }
+}
